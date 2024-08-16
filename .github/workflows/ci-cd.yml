@@ -72,8 +72,14 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [build, test, deploy]
-    if: always()  # Notify Always
+    if: failure()  # Notify only if previous jobs failed
     steps:
       - name: Send notification to Slack
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build or deployment failed! Please check the GitHub Actions for more details."}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "Error: SLACK_WEBHOOK_URL secret is not set"
+            exit 1
+          fi
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build or deployment failed! Please check the GitHub Actions for more details."}' "$SLACK_WEBHOOK_URL"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
