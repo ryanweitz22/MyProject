@@ -72,7 +72,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [build, test, deploy]
-    if: Always() && (needs.build.result == 'failure' || needs.test.result == 'failure' || needs.deploy.result == 'failure')
+    if: Always()
     steps:
       - name: Send notification to Slack
         run: |
