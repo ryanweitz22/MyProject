@@ -74,13 +74,16 @@ jobs:
     needs: [build, test, deploy]
     if: always()  # Notify regardless of previous jobs' status
     steps:
-      - name: Send notification to Slack
-        run: |
-          echo "SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}"
-          if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            echo "Error: SLACK_WEBHOOK_URL secret is not set"
-            exit 1
-          fi
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build or deployment failed! Please check the GitHub Actions for more details."}' "$SLACK_WEBHOOK_URL"
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Send notification email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: 'CI/CD Pipeline Notification'
+          body: |
+            Build and deployment have completed.
+            Please check the GitHub Actions for more details.
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
