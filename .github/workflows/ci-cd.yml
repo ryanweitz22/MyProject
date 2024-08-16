@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: src/YourApp
+
+      - name: Build
+        run: dotnet build --configuration Release
+        working-directory: src/YourApp
+
+      - name: Publish
+        run: dotnet publish --configuration Release --output ./publish
+        working-directory: src/YourApp
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: src/YourApp
+
+      - name: Run tests
+        run: dotnet test --no-restore --verbosity normal
+        working-directory: src/YourApp
+
+      - name: Code Coverage
+        run: dotnet test --no-restore --collect:"XPlat Code Coverage"
+        working-directory: src/YourApp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Staging
+        run: |
+          # Add your deployment script here
+          echo "Deploying to staging environment..."
+        working-directory: src/YourApp
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build, test, deploy]
+    if: failure()  # Notify only if previous jobs failed
+    steps:
+      - name: Send notification to Slack
+        uses: slackapi/slack-github-action@v1.0.0
+        with:
+          slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: 'Build or deployment failed! Please check the GitHub Actions for more details.'
