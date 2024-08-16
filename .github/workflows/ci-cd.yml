@@ -74,11 +74,9 @@ jobs:
     needs: [build, test, deploy]
     if: always()  # Notify regardless of previous jobs' status
     steps:
-      - name: Check environment variables
-        run: env
-
       - name: Send notification to Slack
         run: |
+          echo "SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}"
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
             echo "Error: SLACK_WEBHOOK_URL secret is not set"
             exit 1
