@@ -72,8 +72,11 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: [build, test, deploy]
-    if: Always()
+    if: always()  # Notify regardless of previous jobs' status
     steps:
+      - name: Check environment variables
+        run: env
+
       - name: Send notification to Slack
         run: |
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
