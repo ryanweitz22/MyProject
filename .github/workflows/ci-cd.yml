@@ -75,19 +75,5 @@ jobs:
     if: always()  # Notify regardless of previous jobs' status
     steps:
       - name: Send notification to Slack
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const axios = require('axios');
-            const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-            const message = 'Build or deployment failed! Please check the GitHub Actions for more details.';
-
-            axios.post(webhookUrl, { text: message })
-              .then(response => {
-                console.log('Notification sent successfully');
-              })
-              .catch(error => {
-                console.error('Error sending notification:', error);
-              });
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Build or deployment failed! Please check the GitHub Actions for more details."}' ${{ secrets.SLACK_WEBHOOK_URL }}
